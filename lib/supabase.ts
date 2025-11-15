@@ -16,28 +16,49 @@ export const createClientComponentClient = () => {
 
 import { createClient } from '@supabase/supabase-js';
 
-// Use empty strings as defaults during build
-// These will be replaced at runtime with actual values from environment
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
+// ========================================
+// ENVIRONMENT VARIABLES WITH FALLBACKS
+// Get Supabase credentials from environment variables
+// Use empty strings as fallback to prevent build errors
+// ========================================
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-// Create Supabase client with fallback values
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// ========================================
+// VALIDATE ENVIRONMENT VARIABLES
+// Log warnings if credentials are missing
+// ========================================
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('⚠️ Supabase credentials missing! Set these environment variables:');
+  console.warn('  - NEXT_PUBLIC_SUPABASE_URL');
+  console.warn('  - NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  console.warn('App will not work properly without these credentials.');
+}
 
-// For client-side usage
+// ========================================
+// CREATE SUPABASE CLIENT
+// Initialize the Supabase client with credentials
+// If credentials are missing, this will still create a client
+// but database operations will fail gracefully
+// ========================================
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false, // Disable session persistence for serverless
+  },
+});
+
+// ========================================
+// CREATE CLIENT COMPONENT CLIENT
+// For use in client-side React components
+// ========================================
 export const createClientComponentClient = () => {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || supabaseUrl,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || supabaseAnonKey
-  );
+  return createClient(supabaseUrl, supabaseAnonKey);
 };
 
-// Helper to check if Supabase is properly configured
-export const isSupabaseConfigured = () => {
-  return (
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co' &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY !== 'placeholder-key'
-  );
+// ========================================
+// HELPER: CHECK IF SUPABASE IS CONFIGURED
+// Returns true if environment variables are set
+// ========================================
+export const isSupabaseConfigured = (): boolean => {
+  return !!(supabaseUrl && supabaseAnonKey);
 };
