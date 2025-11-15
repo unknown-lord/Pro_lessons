@@ -84,7 +84,7 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
   > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
   > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
 
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+ Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
 
 5. You can now run the Next.js local development server:
 
@@ -97,6 +97,29 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+
+## Gemini API Setup
+
+- Get a free API key from Google AI Studio: https://aistudio.google.com/app/apikey
+- Add the following to your `.env.local` (do not prefix with `NEXT_PUBLIC_`):
+
+  ```env
+  GEMINI_API_KEY=AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXX
+  ```
+
+- Restart the dev server after changing env vars: `npm run dev`
+- If `GEMINI_API_KEY` is missing, the app will generate mock lesson content and show a warning banner on the homepage.
+- You can quickly verify your key with:
+
+  ```bash
+  node app/api/generate-lesson/test-gemini.js
+  ```
+
+### Troubleshooting
+
+- 401/403 errors: ensure the key is correct and not restricted.
+- Quotas: free tier limits apply (15 RPM, 1,500 RPD). Try again later.
+- Ensure the key is set in the server environment for deployments (e.g., Vercel project env vars).
 
 ## Feedback and issues
 
