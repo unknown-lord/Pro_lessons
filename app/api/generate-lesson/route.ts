@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import OpenAI from 'openai';
 
 // ========================================
 // POST REQUEST HANDLER
@@ -96,17 +97,18 @@ async function generateLessonContent(lessonId: string, outline: string) {
     const trace: any = {
       prompt: `Generate a TypeScript educational module for: ${outline}`,
       timestamp: new Date().toISOString(),
-      model: 'gemini-2.5-flash',
+      provider: undefined,
+      model: undefined,
     };
 
     // ========================================
     // CHECK IF API KEY EXISTS
     // Get your FREE API key at: https://aistudio.google.com/app/apikey
     // ========================================
-    const useRealAI = !!process.env.GEMINI_API_KEY;
-    
-    if (!useRealAI) {
-      console.warn('⚠️ GEMINI_API_KEY not set - using mock generation for testing');
+    const useHelicone = !!process.env.HELICONE_API_KEY;
+    const useGemini = !!process.env.GEMINI_API_KEY;
+    if (!useHelicone && !useGemini) {
+      console.warn('⚠️ No AI keys set - using mock generation for testing');
     }
 
     // ========================================
@@ -147,12 +149,38 @@ Return ONLY the TypeScript code, no markdown formatting or explanations.`;
     // ========================================
     // GENERATE CONTENT (REAL AI OR MOCK)
     // ========================================
-    if (useRealAI) {
+    if (useHelicone) {
       try {
-        // Try REAL AI GENERATION using Gemini
+        trace.provider = 'helicone';
+        trace.model = 'gpt-4o-mini';
+        content = await generateWithHelicone(prompt, trace);
+      } catch (error) {
+        console.warn('⚠️ Helicone/OpenAI failed, attempting Gemini. Error:', error);
+        if (useGemini) {
+          try {
+            trace.provider = 'gemini';
+            trace.model = 'gemini-2.5-flash';
+            content = await generateWithGemini(prompt, trace);
+          } catch (error2) {
+            console.warn('⚠️ Gemini also failed, falling back to mock:', error2);
+            content = generateMockLesson(outline, isEasterEgg);
+            trace.output = content;
+            trace.mock = true;
+            trace.fallback_reason = error2 instanceof Error ? error2.message : String(error2);
+          }
+        } else {
+          content = generateMockLesson(outline, isEasterEgg);
+          trace.output = content;
+          trace.mock = true;
+          trace.fallback_reason = error instanceof Error ? error.message : String(error);
+        }
+      }
+    } else if (useGemini) {
+      try {
+        trace.provider = 'gemini';
+        trace.model = 'gemini-2.5-flash';
         content = await generateWithGemini(prompt, trace);
       } catch (error) {
-        // If Gemini fails, fall back to mock
         console.warn('⚠️ Gemini API failed, falling back to mock generation:', error);
         content = generateMockLesson(outline, isEasterEgg);
         trace.output = content;
@@ -160,7 +188,6 @@ Return ONLY the TypeScript code, no markdown formatting or explanations.`;
         trace.fallback_reason = error instanceof Error ? error.message : String(error);
       }
     } else {
-      // MOCK GENERATION for testing without API key
       content = generateMockLesson(outline, isEasterEgg);
       trace.output = content;
       trace.mock = true;
@@ -479,3 +506,45 @@ export { Quiz, Question };`;
 // 10. Supabase realtime pushes update to frontend
 // 11. Frontend automatically shows new status without refresh!
 // ========================================
+// ========================================
+// HELPER: GENERATE WITH HELICONE (OpenAI SDK)
+// ========================================
+async function generateWithHelicone(prompt: string, trace: any): Promise<string> {
+  const openai = new OpenAI({
+    apiKey: process.env.HELICONE_API_KEY!,
+    baseURL: 'https://ai-gateway.helicone.ai/v1',
+    defaultHeaders: {
+      'Helicone-Auth': process.env.HELICONE_API_KEY!,
+      'Helicone-Property-User': trace?.userId || 'anonymous',
+      'Helicone-Property-TraceId': trace?.traceId || '',
+      // Add more custom properties as needed
+    },
+  });
+
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      {
+        role: 'system',
+        content:
+          'You generate executable TypeScript modules only. Respond with raw TypeScript without markdown.',
+      },
+      { role: 'user', content: prompt },
+    ],
+  });
+
+  const content = completion.choices?.[0]?.message?.content ?? '';
+  const cleaned = (content || '')
+    .replace(/```typescript\n?/g, '')
+    .replace(/```ts\n?/g, '')
+    .replace(/```\n?/g, '')
+    .trim();
+
+  trace.response_metadata = {
+    id: completion.id,
+    created: completion.created,
+    model: completion.model,
+  };
+  trace.output = cleaned;
+  return cleaned;
+}

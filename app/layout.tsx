@@ -33,7 +33,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`}>
+      {/* Use a static className for best hydration results. If you want to use geistSans, ensure it's loaded identically server/client. */}
+      <body className="geist-sans antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

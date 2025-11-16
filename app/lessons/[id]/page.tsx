@@ -132,14 +132,14 @@ export default async function LessonPage({
             ======================================== */}
         {lesson.trace && (
           <div className="mt-6 bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">AI Trace Log</h2>
+            <h2 className="text-xl font-semibold text-gray-600 mb-4">AI Trace Log</h2>
             
             {/* PRE-FORMATTED JSON DISPLAY */}
             {/* Shows the trace object as formatted JSON
                 - JSON.stringify converts object to string
                 - Second parameter (null) is a replacer function (we don't need one)
                 - Third parameter (2) adds 2-space indentation for readability */}
-            <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm">
+            <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-gray-600 text-sm">
               {JSON.stringify(lesson.trace, null, 2)}
             </pre>
           </div>

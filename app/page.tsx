@@ -154,7 +154,7 @@ export default function Home() {
             White card with textarea and button
             ======================================== */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Create New Lesson</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Create New Lesson</h2>
           
           {/* CONTROLLED TEXTAREA */}
           {/* - value={outline} means the textarea displays whatever is in the outline state
@@ -186,7 +186,7 @@ export default function Home() {
             Shows all created lessons with their status
             ======================================== */}
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Your Lessons</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Your Lessons</h2>
           
           {/* CONDITIONAL RENDERING: Shows different UI based on lessons array length */}
           {lessons.length === 0 ? (
@@ -205,7 +205,7 @@ export default function Home() {
                 
                 {/* TABLE HEADER - Column titles */}
                 <thead>
-                  <tr className="border-b">
+                  <tr className="border-b text-gray-800">
                     <th className="text-left py-3 px-4">Title</th>
                     <th className="text-left py-3 px-4">Outline</th>
                     <th className="text-left py-3 px-4">Status</th>
@@ -225,7 +225,7 @@ export default function Home() {
                       {/* ========================================
                           COLUMN 1: LESSON TITLE
                           ======================================== */}
-                      <td className="py-3 px-4 font-medium">
+                      <td className="py-3 px-4 text-gray-600 font-medium">
                         {/* If lesson.title exists, show it. Otherwise show 'Untitled' */}
                         {/* This is using the || (OR) operator as a fallback */}
                         {lesson.title || 'Untitled'}

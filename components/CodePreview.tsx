@@ -31,10 +31,12 @@ export default function CodePreview({ code }: CodePreviewProps) {
   // SYNTAX HIGHLIGHTING EFFECT
   // Runs after component renders to apply Prism.js highlighting
   // ========================================
+  const [highlighted, setHighlighted] = useState('');
+
   useEffect(() => {
-    // Prism.highlightAll() finds all <code> elements and applies syntax colors
-    Prism.highlightAll();
-  }, [code]);  // Re-run when 'code' prop changes
+    // Highlight code only on client
+    setHighlighted(Prism.highlight(code, Prism.languages.typescript, 'typescript'));
+  }, [code]);
 
   // ========================================
   // JSX RENDER - THE UI STRUCTURE
@@ -87,15 +89,11 @@ export default function CodePreview({ code }: CodePreviewProps) {
         // CODE VIEW: Syntax-highlighted code display
         // ========================================
         <div className="bg-gray-900 rounded-lg p-6 overflow-x-auto">
-          {/* PRE and CODE tags are HTML elements for displaying preformatted code
-              - <pre>: Preserves whitespace and line breaks
-              - <code>: Indicates this is computer code */}
-          <pre className="text-sm">
-            {/* The className "language-typescript" tells Prism.js to use TypeScript syntax rules
-                Prism.highlightAll() will find this and apply colors */}
-            <code className="language-typescript">
-              {code}  {/* Display the actual code string passed as prop */}
-            </code>
+          <pre className="text-sm language-typescript" tabIndex={0}>
+            <code
+              className="language-typescript"
+              dangerouslySetInnerHTML={{ __html: highlighted }}
+            />
           </pre>
         </div>
       ) : (
